@@ -1,0 +1,61 @@
+<h1 id='log1'></h1>
+<h2 id='log2'></h2>
+<h3 id='log3'></h3>
+<Script>
+async function forEachAsync(arr, cb, skip = 0) {
+console.log({arr,cb,skip})
+    var s = 0;
+    for (let i = 0; i < arr.length; i++) {
+        if (s < skip) {
+            s++;
+            cb(arr[i]).then((n) => {
+                s--
+            })
+        } else {
+            await cb(arr[i])
+        }
+    }
+}
+String.prototype.toNUm=function(){return Number(this)}
+function Log(t, e = 1) {
+    document.getElementById('log' + e).innerText = t
+}
+Log('Fetching scripts')
+var t = performance.now()
+fetch('https://greasyfork.org/en/users/472665-gaston-1799.json').then(e => e.json()).then(a => {
+    Log('FOund in:' + (performance.now() - t).toFixed(0) + 'ms')
+    Log('Getting data:', 2)
+    const {all_listable_scripts,id,name} = a
+	async function s(script){
+		let {license,name,namespace,version,code_url,locale,description,id}=script
+		//version=version.toNum();
+		var url=`https://greasyfork.org/scripts/${id}.json`
+		var data=await fetch(url).then(e => e.json())
+		var code=await fetch(code_url).then(e=>e.blob()).then(e=>e.text())
+		const {users}=data
+		var p=document.createElement('p')
+		var br=document.createElement('br')
+		var ta=document.createElement('textarea')
+		p.innerText=`${name} by ${users.map(user=>user.name).join(',')}\nVersion:${version}\nlicense:${license}`
+		p.setAttribute('lang',locale)
+		ta.value=code
+		document.body.append(p)
+		document.body.append(ta)
+		document.body.append(br)
+	}
+	forEachAsync(all_listable_scripts,s,3).then(c=>{},b=>{console.log(b.message)})
+}).then(a=>console.log(a),b=>console.log(b.message))
+
+var str=`// ==UserScript==
+// @name         New pizzapresser autoplay
+// @namespace    http://tampermonkey.net/
+// @version      0.5
+// @description  This mod and game is basicly the same at cookie clicker mod. auto clicks pizza auto upgrade and auto buying.
+// @author       You
+// @match        http://pizzapresser.com/
+// @grant        none
+// ==/UserScript==`
+var metaReg=/(\/{2} ==UserScript==)\n((\/{2}[\t ]+@([\w\d_])+)[\t ]+([^\n]+)\n)+(\/{2} ==\/UserScript==)/ig
+var meta=/(\/{2}[\t ]+)@([\w\d_])+[\t ]+([^\n]+)/i
+console.log(str.match(metaReg)[0].split('\n').map(e=>e.match(meta)))
+</Script>
